@@ -1,9 +1,13 @@
-*.zip
 *.so
-*.pcap
-*.log
-*.o
 *.a
+*.o
 *.out
+*.pcap
+*.zip
+*.log
+
 build/
 bin/
+backup/
+
+__pycache__/
