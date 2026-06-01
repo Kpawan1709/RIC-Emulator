@@ -1,0 +1,2 @@
+gcc -g -c -I ./inc/  main.c -o ric_emulator.o
+cc   ric_emulator.o   -o ric_emulator

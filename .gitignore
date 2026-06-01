@@ -1,0 +1,9 @@
+*.zip
+*.so
+*.pcap
+*.log
+*.o
+*.a
+*.out
+build/
+bin/

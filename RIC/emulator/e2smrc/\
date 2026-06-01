@@ -1,0 +1,250 @@
+
+#include "head.h"
+
+e2_return_et encode_ric_control_request
+(
+ UInt8                                          **pp_asn_msg,   
+ UInt16                                         *p_asn_msg_len
+)
+{
+   e2ap_E2AP_PDU                  e2ap_pdu;
+   OSCTXT                         asn1_ctx;
+   e2ap_RICcontrolRequest			*p_asn_ric_control_request = NULL;
+   e2_return_et                   response = E2_SUCCESS;
+   E2SM_RC_RAN_CallProcess_ID	*p_call=NULL;  
+   UInt8   *p_event_msg=NULL,*p_head_msg=NULL,*p_msg=NULL;
+   UInt16	*p_event_msg_len=malloc(sizeof(UInt16));
+   UInt16	*p_head_msg_len=malloc(sizeof(UInt16));
+   UInt16	*p_msg_len=malloc(sizeof(UInt16));
+
+   //p_asn_ric_control_request = (struct e2ap_RICcontrolRequest_protocolIEs_element *)malloc(sizeof(struct e2ap_RICcontrolRequest_protocolIEs_element));
+	//memset(p_asn_ric_control_request, 0, sizeof(struct e2ap_RICcontrolRequest_protocolIEs_element));
+	  
+	
+   UInt8   *p_asn_msg = malloc(E2CU_ASN1_BUFFER_LENGTH);
+   printf (" p_asn_msg : %p",p_asn_msg);
+   if (NULL == p_asn_msg)
+   {
+	   printf("\n\n\nFailed !!\n\n");
+		return E2_FAILURE;
+   }
+   memset(p_asn_msg,0,E2CU_ASN1_BUFFER_LENGTH);
+
+
+   printf( "\n\n\nencode_ric_control_req\n\n");
+	*pp_asn_msg =  p_asn_msg;
+
+
+/* Init ASN.1 context */
+    if(E2_ASN_OK != rtInitContext(&asn1_ctx))
+    {
+      printf("\n\n\nASN Context Initialization Failed\n\n");
+	 response = E2_FAILURE;
+       return response;
+    }	
+ 
+    // call process 
+   p_call = malloc(sizeof(E2SM_RC_RAN_CallProcess_ID));
+
+   *p_call = 156;  
+   
+   p_event_msg = malloc(E2CU_ASN1_BUFFER_LENGTH);
+   memset(p_event_msg,0,E2CU_ASN1_BUFFER_LENGTH);
+	
+
+   if( RT_OK != pu_setBuffer(&asn1_ctx, p_event_msg,E2CU_ASN1_BUFFER_LENGTH, TRUE))
+         {
+            printf("\n\nRAN_CallProcess_ID pu_setBuffer failed.\n");
+            response = E2_FAILURE;
+            
+         }                                  
+	else         
+        printf("\nRAN_CallProcess_ID pu_setBuffer success.\n%d\n",*p_event_msg);
+
+     int a =  asn1PE_E2SM_RC_RAN_CallProcess_ID(&asn1_ctx,*p_call);
+       printf("\nasn1PE_E2SM_RC_RAN_CallProcess_ID==%d,%d\n",a,*p_event_msg);
+
+	*p_event_msg_len = (UInt16)pe_GetMsgLen(&asn1_ctx);		
+	printf("len=%d\n",*p_event_msg_len);
+       for(a=0; a < *p_event_msg_len; a ++)
+        {
+          printf("%02x ", p_event_msg[a]);
+        }
+       a=0;
+
+       //headers control
+       E2SM_RC_ControlHeader        *p_header=NULL;
+       
+   p_head_msg = malloc(E2CU_ASN1_BUFFER_LENGTH);
+   memset(p_head_msg,0,E2CU_ASN1_BUFFER_LENGTH);
+       p_header  = malloc(sizeof(E2SM_RC_ControlHeader));
+	memset(p_header,0,sizeof(E2SM_RC_ControlHeader));
+	
+	p_header->ric_controlHeader_formats.t=T_E2SM_RC_ControlHeader_ric_controlHeader_formats_controlHeader_Format1;
+	
+	p_header->ric_controlHeader_formats.u.controlHeader_Format1=malloc(sizeof(E2SM_RC_ControlHeader_Format1));
+	p_header->ric_controlHeader_formats.u.controlHeader_Format1->m.ric_ControlDecisionPresent=0;
+	p_header->ric_controlHeader_formats.u.controlHeader_Format1->ueID.t=T_UEID_gNB_UEID;
+	p_header->ric_controlHeader_formats.u.controlHeader_Format1->ueID=*((UEID*)malloc(sizeof(UEID)));;
+
+	p_header->ric_controlHeader_formats.u.controlHeader_Format1->ric_Style_Type=3;
+	p_header->ric_controlHeader_formats.u.controlHeader_Format1->ric_ControlAction_ID=101;
+
+	printf("\n\n=header=====%p===========\n",(p_header->ric_controlHeader_formats.u.controlHeader_Format1));
+	
+
+	if( RT_OK != pu_setBuffer(&asn1_ctx, p_head_msg,E2CU_ASN1_BUFFER_LENGTH, TRUE))
+	{
+   		printf("\n\nControlHeader pu_setBuffer failed.\n");
+   		response = E2_FAILURE; 
+	}
+	else
+       		printf("\nControlHeader pu_setBuffer success.\n%d\n",*p_head_msg);	
+
+	int b =  asn1PE_E2SM_RC_ControlHeader(&asn1_ctx,p_header);
+	printf("\nasn1PE_E2SM_RC_ControlHeader==%d,%d\n",a,*p_head_msg); 
+	*p_head_msg_len = (UInt16)pe_GetMsgLen(&asn1_ctx);
+	printf("len=%d\n",*p_head_msg_len);
+	for(b=0; b < *p_head_msg_len; b ++)
+	{
+     		printf("%02x ", p_head_msg[b]);
+	}
+	b=0;
+	
+	//control message
+	E2SM_RC_ControlMessage	*msg=NULL;
+   	p_msg = malloc(E2CU_ASN1_BUFFER_LENGTH);
+   	memset(p_msg,0,E2CU_ASN1_BUFFER_LENGTH);
+        msg = malloc(sizeof(E2SM_RC_ControlMessage));
+	memset(msg,0,sizeof(E2SM_RC_ControlMessage));
+	
+	msg->ric_controlMessage_formats.t=T_E2SM_RC_ControlMessage_ric_controlMessage_formats_controlMessage_Format1;
+	msg->ric_controlMessage_formats.u.controlMessage_Format1->ranP_List;		
+	
+	E2SM_RC_ControlMessage_Format1_Item	*cmsg=NULL;
+	OSRTDListNode        *Node1=NULL;
+        rtxDListInit(&(msg->ric_controlMessage_formats.u.controlMessage_Format1->ranP_List));
+	asn1Init_E2SM_RC_ControlMessage_Format1_ranP_List(&(msg->ric_controlMessage_formats.u.controlMessage_Format1->ranP_List));
+	int loop =0 ;
+        for (loop = 0 ; loop < 2 ; loop++ )
+	{
+            rtxDListAllocNodeAndData(&asn1_ctx,E2SM_RC_ControlMessage_Format1_Item,&Node1,&cmsg);
+
+            memset(cmsg,0,sizeof(E2SM_RC_ControlMessage_Format1_Item));
+	    
+	    cmsg->ranParameter_ID=0;
+	    //cmsg->ranParameter_valueType.t=T_E2SM_RC_RANParameter_Value_valueInt;
+	    //cmsg->ranParameter_valueType.u.valueInt=2;
+
+	    rtxDListAppendNode (&(msg->ric_controlMessage_formats.u.controlMessage_Format1->ranP_List),Node1);
+	 }
+	
+	printf("\n\n=controlmessage=====%p===========\n",(msg->ric_controlMessage_formats.u.controlMessage_Format1));
+	
+
+	if( RT_OK != pu_setBuffer(&asn1_ctx, p_msg,E2CU_ASN1_BUFFER_LENGTH, TRUE))
+	{
+   		printf("\n\nControlMessage pu_setBuffer failed.\n");
+   		response = E2_FAILURE; 
+	}
+	else
+       		printf("\nControlMessage pu_setBuffer success.\n%d\n",*p_msg);	
+
+	int c =  asn1PE_E2SM_RC_ControlMessage(&asn1_ctx,msg);
+	printf("\nasn1PE_E2SM_RC_ControlMessage==%d,%d\n",a,*p_msg); 
+	*p_msg_len = (UInt16)pe_GetMsgLen(&asn1_ctx);
+	printf("len=%d\n",*p_msg_len);
+	for(c=0; c < *p_msg_len; c ++)
+	{
+     		printf("%02x ", p_msg[c]);
+	}
+	c=0;
+
+    	p_asn_ric_control_request = ( e2ap_RICcontrolRequest *)malloc(sizeof(e2ap_RICcontrolRequest));
+	printf("\nsize of e2ap_RICcontrolRequest: %ld bytes \n",sizeof(e2ap_RICcontrolRequest));
+	memset(p_asn_ric_control_request, 0, sizeof(e2ap_RICcontrolRequest));
+
+ 	
+	OSRTDListNode        *Node=NULL;		
+	e2ap_RICcontrolRequest_protocolIEs_element	*Data=NULL;	
+	Node=NULL;
+	int i;
+	e2ap_RICrequestID *_e2ap_RICcontrolRequest_IEs_1;
+	e2ap_RANfunctionID _e2ap_RICcontrolRequest_IEs_2;
+	e2ap_RICcallProcessID *_e2ap_RICcontrolRequest_IEs_3;
+	e2ap_RICcontrolHeader *_e2ap_RICcontrolRequest_IEs_4;
+
+	rtxDListInit(&(p_asn_ric_control_request->protocolIEs));
+	asn1Init_e2ap_RICcontrolRequest_protocolIEs(&(p_asn_ric_control_request->protocolIEs));
+	for(i=0 ; i<6; i++)
+	{
+	
+		switch(i)
+		{
+		case 1:
+		rtxDListAllocNodeAndData(&asn1_ctx,e2ap_RICcontrolRequest_protocolIEs_element,&Node,&Data);
+		Data->id=123;
+		Data->criticality=0;
+		Data->value.t=1;
+		Data->value.u._e2ap_RICcontrolRequest_IEs_1 = (e2ap_RICrequestID*)malloc(sizeof(e2ap_RICrequestID));
+		memset(Data->value.u._e2ap_RICcontrolRequest_IEs_1, 0, sizeof(e2ap_RICrequestID));
+		Data->value.u._e2ap_RICcontrolRequest_IEs_1->ricRequestorID=1;
+		Data->value.u._e2ap_RICcontrolRequest_IEs_1->ricInstanceID=2;
+                 rtxDListAppendNode (&(p_asn_ric_control_request->protocolIEs),Node);
+
+		break;
+		case 2:
+		rtxDListAllocNodeAndData(&asn1_ctx,e2ap_RICcontrolRequest_protocolIEs_element,&Node,&Data);
+                Data->id=124;
+                Data->criticality=0;
+                Data->value.t=2;
+		Data->value.u._e2ap_RICcontrolRequest_IEs_2=3;
+                rtxDListAppendNode (&(p_asn_ric_control_request->protocolIEs),Node);
+
+
+		break;
+		case 3:
+		rtxDListAllocNodeAndData(&asn1_ctx,e2ap_RICcontrolRequest_protocolIEs_element,&Node,&Data);
+		Data->id=125;
+                Data->criticality=0;
+                Data->value.t=3;
+		Data->value.u._e2ap_RICcontrolRequest_IEs_3 = (e2ap_RICcallProcessID*)malloc(sizeof(e2ap_RICcallProcessID));
+      		memset(Data->value.u._e2ap_RICcontrolRequest_IEs_3, 0, sizeof(e2ap_RICcallProcessID));
+		Data->value.u._e2ap_RICcontrolRequest_IEs_3->numocts=*p_event_msg_len;
+		Data->value.u._e2ap_RICcontrolRequest_IEs_3->data=(OSOCTET *)p_event_msg;
+		rtxDListAppendNode (&(p_asn_ric_control_request->protocolIEs),Node);
+		printf("-----------\n");
+		asn1Print_E2SM_RC_RAN_CallProcess_ID("RAN_CallProcess_ID",p_call);
+		printf("-----------------\n");
+		break;
+		case 4:
+		 rtxDListAllocNodeAndData(&asn1_ctx,e2ap_RICcontrolRequest_protocolIEs_element,&Node,&Data);
+                Data->id=126;
+                Data->criticality=0;
+                Data->value.t=4;
+		asn1Print_E2SM_RC_ControlHeader("ControlHeader",p_header);
+		Data->value.u._e2ap_RICcontrolRequest_IEs_4->numocts=*p_head_msg_len;
+		Data->value.u._e2ap_RICcontrolRequest_IEs_4->data=(OSOCTET *)p_head_msg;
+		rtxDListAppendNode (&(p_asn_ric_control_request->protocolIEs),Node);
+		break;
+
+		case 5:
+		rtxDListAllocNodeAndData(&asn1_ctx,e2ap_RICcontrolRequest_protocolIEs_element,&Node,&Data);
+                Data->id=127;
+                Data->criticality=0;
+                Data->value.t=5;
+		asn1Print_E2SM_RC_ControlMessage("ControlMessage",msg);
+		Data->value.u._e2ap_RICcontrolRequest_IEs_5->numocts=*p_msg_len;
+		Data->value.u._e2ap_RICcontrolRequest_IEs_5->data=(OSOCTET *)p_msg;
+		rtxDListAppendNode (&(p_asn_ric_control_request->protocolIEs),Node);
+		break;
+
+	}
+
+}
+
+//	asn1Print_e2ap_RICcontrolRequest_protocolIEs_element("e2ap_RICcontrolRequest_protocolIEs_element",p_asn_ric_control_request);
+	asn1PrtToStrm_e2ap_RICcontrolRequest(&asn1_ctx,"e2ap_RICcontrolRequest",p_asn_ric_control_request);
+
+}
+

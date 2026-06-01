@@ -1,0 +1,16 @@
+all: ric_emulator
+
+ric_emulator:ric_emulator.o ric_control.o
+	gcc -g  ric_emulator.o ./lib/e2sm_rc_asn_enc_dec_3gpp.o  -lsctp -L ./lib/ -le2ducommon -le2dumain -lcipher -lricmain -lasn1rt -lasn -lasn1per -lrichdl -o ./bin/ric_emulator
+
+
+ric_emulator.o:./e2smrc/Ric_hdl.c 
+	gcc -g -c -I ./inc/  ./e2smrc/Ric_hdl.c -o ric_emulator.o
+
+ric_control.o:./e2smrc/ric_control.c
+	gcc -g -c -I ./inc/  ./e2smrc/ric_control.c -o ric_control.o
+	
+
+clean:
+	 rm -f ./bin/* && rm -f ric_emulator.o	
+	 rm -f ./bin/* && rm -f ric_control.o	

@@ -1,0 +1,12 @@
+all:bin/ric_emulator
+
+bin/ric_emulator:main.c 
+	gcc -g  main.c -I inc   -lsctp -L lib/ -le2ducommon  -lcipher -lricmain -lasn1rt -lasn -lasn1per -lrichdl -o bin/ric_emulator
+
+
+
+clean:
+	rm -f bin/* && rm -f ric_emulator.o
+
+
+

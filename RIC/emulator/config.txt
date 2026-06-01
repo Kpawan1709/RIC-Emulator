@@ -1,0 +1,57 @@
+#**************** ric subscription response *********************************
+RIC_REQUESTOR_ID=1
+RIC_INSTANCE_ID=55068
+RAN_FUNCTION_ID=2
+ADMITTED_ACTION_COUNT=11
+ADMITTED_IE_ID=14
+CRITICALITY=0
+ACTION_ID=1
+
+#**************** ric subscription request *********************************
+
+# RIC_REQUESTOR_ID=1
+# RIC_INSTANCE_ID=55068
+
+# RAN_FUNCTION_ID=2
+
+#plmn_identity
+PLMN0=0x11
+PLMN1=0x22
+PLMN2=0x33
+
+#amf_regionid
+AMF_REGION=2
+
+#amf_setid
+AMF_SET=F1
+
+#amf_pointer
+AMF_POINTER=0x34
+
+
+
+EVENT_TRIGGER_ID=2
+PROC_ID_1=41
+PROC_ID_2=28
+
+#ACTION_ID=1
+ricActionType                = 0
+ricSubsequentActionType      = 0
+RAN_PARAM_FMT1=2
+RAN_PARAM_FMT3=24
+
+# -------- EVENT TRIGGER (HEX OCTET STRING) --------
+EVENT_TRIGGER_LEN=20
+EVENT_TRIGGER_DATA=0A00000500000000107535200000103AA2682200
+
+# -------- ACTIONDEFInition (HEX OCTET STRING) --------
+Action_Definition_LEN=8
+Action_Definition_DATA=0001010000000001
+
+#-----------------e2ap setup response --------------------------------
+transactionID = 1
+
+
+
+
+

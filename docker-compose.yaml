@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  ric-emulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ric-emulator
+    environment:
+      SERVER_IP: "0.0.0.0"
+      SERVER_PORT: "36421"
+    ports:
+      - "36421:36421"
+    privileged: true
+    tty: true
+    restart: unless-stopped
